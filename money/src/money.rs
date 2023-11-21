@@ -1,5 +1,12 @@
+#[derive(Debug)]
 pub struct Dollar {
     amount: u32,
+}
+
+impl PartialEq for Dollar {
+    fn eq(&self, dollar: &Self) -> bool {
+        self.amount == dollar.amount()
+    }
 }
 
 impl Dollar {
@@ -12,8 +19,8 @@ impl Dollar {
     pub fn amount(&self) -> u32 {
         self.amount
     }
-    pub fn equals(&self, dollar: Dollar) -> bool {
-        self.amount == dollar.amount()
+    pub fn equals(&self, dollar: Self) -> bool {
+        self.eq(&dollar)
     }
 }
 
@@ -24,10 +31,8 @@ mod tests {
     #[test]
     fn test_multiplication() {
         let five = Dollar::new(5);
-        let product = five.times(2);
-        assert_eq!(10, product.amount());
-        let product = five.times(3);
-        assert_eq!(15, product.amount());
+        assert_eq!(Dollar::new(10), five.times(2));
+        assert_eq!(Dollar::new(15), five.times(3));
     }
 
     #[test]

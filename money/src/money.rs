@@ -12,6 +12,9 @@ impl Dollar {
     pub fn amount(&self) -> u32 {
         self.amount
     }
+    pub fn equals(&self, dollar: Dollar) -> bool {
+        self.amount == dollar.amount()
+    }
 }
 
 #[cfg(test)]
@@ -25,5 +28,11 @@ mod tests {
         assert_eq!(10, product.amount());
         let product = five.times(3);
         assert_eq!(15, product.amount());
+    }
+
+    #[test]
+    fn test_equality() {
+        assert!(Dollar::new(5).equals(Dollar::new(5)));
+        assert!(!Dollar::new(5).equals(Dollar::new(6)))
     }
 }

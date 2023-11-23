@@ -8,49 +8,17 @@ impl Money {
     fn new(amount: u32, currency: &'static str) -> Self {
         Money { amount, currency }
     }
-    fn dollar(amount: u32) -> Dollar {
-        Dollar::new(amount)
+    fn dollar(amount: u32) -> Self {
+        Money::new(amount, "USD")
     }
-    fn franc(amount: u32) -> Franc {
-        Franc::new(amount)
+    fn franc(amount: u32) -> Self {
+        Money::new(amount, "CHF")
     }
-}
-
-#[derive(Debug, PartialEq)]
-struct Dollar {
-    money: Money,
-}
-
-impl Dollar {
-    fn new(amount: u32) -> Self {
-        Dollar {
-            money: Money::new(amount, "USD"),
-        }
-    }
-    fn times(&self, multiplier: u32) -> Dollar {
-        Money::dollar(self.money.amount * multiplier)
+    fn times(&self, multiplier: u32) -> Self {
+        Money::new(self.amount * multiplier, self.currency)
     }
     fn currency(&self) -> &str {
-        self.money.currency
-    }
-}
-
-#[derive(Debug, PartialEq)]
-struct Franc {
-    money: Money,
-}
-
-impl Franc {
-    fn new(amount: u32) -> Self {
-        Franc {
-            money: Money::new(amount, "CHF"),
-        }
-    }
-    fn times(&self, multiplier: u32) -> Franc {
-        Money::franc(self.money.amount * multiplier)
-    }
-    fn currency(&self) -> &str {
-        self.money.currency
+        self.currency
     }
 }
 
@@ -69,8 +37,7 @@ mod tests {
     fn test_equality() {
         assert!(Money::dollar(5).eq(&Money::dollar(5)));
         assert!(!Money::dollar(5).eq(&Money::dollar(6)));
-        assert!(Money::franc(5).eq(&Money::franc(5)));
-        assert!(!Money::franc(5).eq(&Money::franc(6)));
+        assert!(!Money::franc(5).eq(&Money::dollar(5)));
     }
 
     #[test]

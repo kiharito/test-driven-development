@@ -1,28 +1,43 @@
 #[derive(Debug, PartialEq)]
-pub struct Dollar {
+struct Money {
     amount: u32,
 }
 
-impl Dollar {
-    pub fn new(amount: u32) -> Self {
-        Dollar { amount }
-    }
-    pub fn times(&self, multiplier: u32) -> Dollar {
-        Dollar::new(self.amount * multiplier)
+impl Money {
+    fn new(amount: u32) -> Self {
+        Money { amount }
     }
 }
 
 #[derive(Debug, PartialEq)]
-pub struct Franc {
-    amount: u32,
+struct Dollar {
+    money: Money,
+}
+
+impl Dollar {
+    fn new(amount: u32) -> Self {
+        Dollar {
+            money: Money::new(amount),
+        }
+    }
+    fn times(&self, multiplier: u32) -> Dollar {
+        Dollar::new(self.money.amount * multiplier)
+    }
+}
+
+#[derive(Debug, PartialEq)]
+struct Franc {
+    money: Money,
 }
 
 impl Franc {
-    pub fn new(amount: u32) -> Self {
-        Franc { amount }
+    fn new(amount: u32) -> Self {
+        Franc {
+            money: Money::new(amount),
+        }
     }
-    pub fn times(&self, multiplier: u32) -> Franc {
-        Franc::new(self.amount * multiplier)
+    fn times(&self, multiplier: u32) -> Franc {
+        Franc::new(self.money.amount * multiplier)
     }
 }
 
@@ -40,7 +55,9 @@ mod tests {
     #[test]
     fn test_equality() {
         assert!(Dollar::new(5).eq(&Dollar::new(5)));
-        assert!(!Dollar::new(5).eq(&Dollar::new(6)))
+        assert!(!Dollar::new(5).eq(&Dollar::new(6)));
+        assert!(Franc::new(5).eq(&Franc::new(5)));
+        assert!(!Franc::new(5).eq(&Franc::new(6)));
     }
 
     #[test]

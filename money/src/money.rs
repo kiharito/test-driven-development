@@ -1,11 +1,12 @@
 #[derive(Debug, PartialEq)]
 struct Money {
     amount: u32,
+    currency: String,
 }
 
 impl Money {
-    fn new(amount: u32) -> Self {
-        Money { amount }
+    fn new(amount: u32, currency: String) -> Self {
+        Money { amount, currency }
     }
     fn dollar(amount: u32) -> Dollar {
         Dollar::new(amount)
@@ -23,11 +24,14 @@ struct Dollar {
 impl Dollar {
     fn new(amount: u32) -> Self {
         Dollar {
-            money: Money::new(amount),
+            money: Money::new(amount, "USD".to_string()),
         }
     }
     fn times(&self, multiplier: u32) -> Dollar {
-        Dollar::new(self.money.amount * multiplier)
+        Money::dollar(self.money.amount * multiplier)
+    }
+    fn currency(&self) -> &str {
+        &self.money.currency
     }
 }
 
@@ -39,11 +43,14 @@ struct Franc {
 impl Franc {
     fn new(amount: u32) -> Self {
         Franc {
-            money: Money::new(amount),
+            money: Money::new(amount, "CHF".to_string()),
         }
     }
     fn times(&self, multiplier: u32) -> Franc {
-        Franc::new(self.money.amount * multiplier)
+        Money::franc(self.money.amount * multiplier)
+    }
+    fn currency(&self) -> &str {
+        &self.money.currency
     }
 }
 
@@ -71,5 +78,11 @@ mod tests {
         let five = Money::franc(5);
         assert_eq!(Money::franc(10), five.times(2));
         assert_eq!(Money::franc(15), five.times(3));
+    }
+
+    #[test]
+    fn test_currency() {
+        assert_eq!("USD", Money::dollar(1).currency());
+        assert_eq!("CHF", Money::franc(1).currency());
     }
 }

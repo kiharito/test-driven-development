@@ -17,17 +17,17 @@ impl Money {
     fn times(&self, multiplier: u32) -> Self {
         Money::new(self.amount * multiplier, self.currency)
     }
-    fn plus(&self, addend: Money) -> Sum {
-        Sum::new(self.clone(), addend)
+    fn plus(&self, addend: Money) -> Expression {
+        Expression::Sum(Sum::new(self.clone(), addend))
     }
     fn currency(&self) -> &str {
         self.currency
     }
 }
 
-trait Expression {}
-
-impl Expression for Money {}
+enum Expression {
+    Sum(Sum),
+}
 
 struct Bank {}
 
@@ -35,9 +35,10 @@ impl Bank {
     fn new() -> Self {
         Bank {}
     }
-    fn reduce(&self, source: Sum, to: &'static str) -> Money {
-        let sum = source;
-        sum.reduce(to)
+    fn reduce(&self, source: Expression, to: &'static str) -> Money {
+        match source {
+            Expression::Sum(sum) => sum.reduce(to),
+        }
     }
 }
 
@@ -55,8 +56,6 @@ impl Sum {
         Money::new(amount, to)
     }
 }
-
-impl Expression for Sum {}
 
 #[cfg(test)]
 mod tests {
@@ -101,14 +100,17 @@ mod tests {
     #[test]
     fn test_plus_returns_sum() {
         let five = Money::dollar(5);
-        let sum = five.plus(Money::dollar(5));
+        let result = five.plus(Money::dollar(5));
+        let sum = match result {
+            Expression::Sum(sum) => sum,
+        };
         assert_eq!(five, sum.augend);
         assert_eq!(five, sum.addend);
     }
 
     #[test]
     fn test_reduce_sum() {
-        let sum = Sum::new(Money::dollar(3), Money::dollar(4));
+        let sum = Expression::Sum(Sum::new(Money::dollar(3), Money::dollar(4)));
         let bank = Bank::new();
         let result = bank.reduce(sum, "USD");
         assert_eq!(Money::dollar(7), result);

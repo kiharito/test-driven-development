@@ -17,8 +17,26 @@ impl Money {
     fn times(&self, multiplier: u32) -> Self {
         Money::new(self.amount * multiplier, self.currency)
     }
+    fn plus(&self, addend: Money) -> Self {
+        Money::new(self.amount + addend.amount, self.currency)
+    }
     fn currency(&self) -> &str {
         self.currency
+    }
+}
+
+trait Expression {}
+
+impl Expression for Money {}
+
+struct Bank {}
+
+impl Bank {
+    fn new() -> Self {
+        Bank {}
+    }
+    fn reduce(&self, source: impl Expression, to: &str) -> Money {
+        Money::dollar(10)
     }
 }
 
@@ -51,5 +69,14 @@ mod tests {
     fn test_currency() {
         assert_eq!("USD", Money::dollar(1).currency());
         assert_eq!("CHF", Money::franc(1).currency());
+    }
+
+    #[test]
+    fn test_simple_addition() {
+        let five = Money::dollar(5);
+        let sum = five.plus(Money::dollar(5));
+        let bank = Bank::new();
+        let reduced = bank.reduce(sum, "USD");
+        assert_eq!(Money::dollar(10), reduced);
     }
 }

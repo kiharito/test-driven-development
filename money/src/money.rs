@@ -82,8 +82,8 @@ impl Sum {
     fn new(augend: Money, addend: Money) -> Self {
         Sum { augend, addend }
     }
-    fn reduce(&self, _bank: &Bank, to: &'static str) -> Money {
-        let amount = self.augend.amount + self.addend.amount;
+    fn reduce(&self, bank: &Bank, to: &'static str) -> Money {
+        let amount = self.augend.reduce(bank, to).amount + self.addend.reduce(bank, to).amount;
         Money::new(amount, to)
     }
 }
@@ -178,5 +178,15 @@ mod tests {
     #[test]
     fn test_identity_rate() {
         assert_eq!(1, Bank::new().rate("USD", "USD"))
+    }
+
+    #[test]
+    fn test_mixed_addition() {
+        let five_bucks = Money::dollar(5);
+        let ten_francs = Money::franc(10);
+        let mut bank = Bank::new();
+        bank.add_rate("CHF", "USD", 2);
+        let result = bank.reduce(five_bucks.plus(ten_francs), "USD");
+        assert_eq!(Money::dollar(10), result);
     }
 }

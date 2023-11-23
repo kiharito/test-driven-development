@@ -10,17 +10,17 @@ impl Money {
     fn new(amount: u32, currency: &'static str) -> Self {
         Money { amount, currency }
     }
-    fn dollar(amount: u32) -> Self {
-        Money::new(amount, "USD")
+    fn dollar(amount: u32) -> Expression {
+        Expression::Money(Money::new(amount, "USD"))
     }
-    fn franc(amount: u32) -> Self {
-        Money::new(amount, "CHF")
+    fn franc(amount: u32) -> Expression {
+        Expression::Money(Money::new(amount, "CHF"))
     }
-    fn times(&self, multiplier: u32) -> Self {
-        Money::new(self.amount * multiplier, self.currency)
+    fn times(&self, multiplier: u32) -> Expression {
+        Expression::Money(Money::new(self.amount * multiplier, self.currency))
     }
-    fn plus(&self, addend: Money) -> Expression {
-        Expression::Sum(Sum::new(self.clone(), addend))
+    fn plus(&self, addend: Expression) -> Expression {
+        Expression::Sum(Sum::new(Expression::Money(self.clone()), addend))
     }
     fn reduce(&self, bank: &Bank, to: &'static str) -> Self {
         let rate = bank.rate(self.currency, to);
@@ -31,16 +31,35 @@ impl Money {
     }
 }
 
+#[derive(Debug, PartialEq, Clone)]
 enum Expression {
     Sum(Sum),
     Money(Money),
 }
 
 impl Expression {
+    fn times(&self, multiplier: u32) -> Expression {
+        match self {
+            Expression::Sum(_) => todo!(),
+            Expression::Money(money) => money.times(multiplier),
+        }
+    }
+    fn plus(&self, addend: Expression) -> Expression {
+        match self {
+            Expression::Sum(_) => todo!(),
+            Expression::Money(money) => money.plus(addend),
+        }
+    }
     fn reduce(&self, bank: &Bank, to: &'static str) -> Money {
         match self {
             Expression::Sum(sum) => sum.reduce(bank, to),
             Expression::Money(money) => money.reduce(bank, to),
+        }
+    }
+    fn currency(&self) -> &str {
+        match self {
+            Expression::Sum(_) => todo!(),
+            Expression::Money(money) => money.currency(),
         }
     }
 }
@@ -73,14 +92,18 @@ impl Bank {
     }
 }
 
+#[derive(Debug, PartialEq, Clone)]
 struct Sum {
-    augend: Money,
-    addend: Money,
+    augend: Box<Expression>,
+    addend: Box<Expression>,
 }
 
 impl Sum {
-    fn new(augend: Money, addend: Money) -> Self {
-        Sum { augend, addend }
+    fn new(augend: Expression, addend: Expression) -> Self {
+        Sum {
+            augend: Box::new(augend),
+            addend: Box::new(addend),
+        }
     }
     fn reduce(&self, bank: &Bank, to: &'static str) -> Money {
         let amount = self.augend.reduce(bank, to).amount + self.addend.reduce(bank, to).amount;
@@ -137,7 +160,7 @@ mod tests {
         let sum = five.plus(Money::dollar(5));
         let bank = Bank::new();
         let reduced = bank.reduce(sum, "USD");
-        assert_eq!(Money::dollar(10), reduced);
+        assert_eq!(Money::dollar(10), Expression::Money(reduced));
     }
 
     #[test]
@@ -148,8 +171,8 @@ mod tests {
             Expression::Sum(sum) => sum,
             _ => panic!("Not Sum"),
         };
-        assert_eq!(five, sum.augend);
-        assert_eq!(five, sum.addend);
+        assert_eq!(Box::new(five.clone()), sum.augend);
+        assert_eq!(Box::new(five.clone()), sum.addend);
     }
 
     #[test]
@@ -157,22 +180,22 @@ mod tests {
         let sum = Expression::Sum(Sum::new(Money::dollar(3), Money::dollar(4)));
         let bank = Bank::new();
         let result = bank.reduce(sum, "USD");
-        assert_eq!(Money::dollar(7), result);
+        assert_eq!(Money::dollar(7), Expression::Money(result));
     }
 
     #[test]
     fn test_reduce_money() {
         let bank = Bank::new();
-        let result = bank.reduce(Expression::Money(Money::dollar(1)), "USD");
-        assert_eq!(Money::dollar(1), result);
+        let result = bank.reduce(Money::dollar(1), "USD");
+        assert_eq!(Money::dollar(1), Expression::Money(result));
     }
 
     #[test]
     fn test_reduce_money_different_currency() {
         let mut bank = Bank::new();
         bank.add_rate("CHF", "USD", 2);
-        let result = bank.reduce(Expression::Money(Money::franc(2)), "USD");
-        assert_eq!(Money::dollar(1), result);
+        let result = bank.reduce(Money::franc(2), "USD");
+        assert_eq!(Money::dollar(1), Expression::Money(result));
     }
 
     #[test]
@@ -187,6 +210,6 @@ mod tests {
         let mut bank = Bank::new();
         bank.add_rate("CHF", "USD", 2);
         let result = bank.reduce(five_bucks.plus(ten_francs), "USD");
-        assert_eq!(Money::dollar(10), result);
+        assert_eq!(Money::dollar(10), Expression::Money(result));
     }
 }

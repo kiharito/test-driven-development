@@ -1,11 +1,11 @@
 #[derive(Debug, PartialEq)]
 struct Money {
     amount: u32,
-    currency: String,
+    currency: &'static str,
 }
 
 impl Money {
-    fn new(amount: u32, currency: String) -> Self {
+    fn new(amount: u32, currency: &'static str) -> Self {
         Money { amount, currency }
     }
     fn dollar(amount: u32) -> Dollar {
@@ -24,14 +24,14 @@ struct Dollar {
 impl Dollar {
     fn new(amount: u32) -> Self {
         Dollar {
-            money: Money::new(amount, "USD".to_string()),
+            money: Money::new(amount, "USD"),
         }
     }
     fn times(&self, multiplier: u32) -> Dollar {
         Money::dollar(self.money.amount * multiplier)
     }
     fn currency(&self) -> &str {
-        &self.money.currency
+        self.money.currency
     }
 }
 
@@ -43,14 +43,14 @@ struct Franc {
 impl Franc {
     fn new(amount: u32) -> Self {
         Franc {
-            money: Money::new(amount, "CHF".to_string()),
+            money: Money::new(amount, "CHF"),
         }
     }
     fn times(&self, multiplier: u32) -> Franc {
         Money::franc(self.money.amount * multiplier)
     }
     fn currency(&self) -> &str {
-        &self.money.currency
+        self.money.currency
     }
 }
 

@@ -20,6 +20,9 @@ impl Money {
     fn plus(&self, addend: Money) -> Expression {
         Expression::Sum(Sum::new(self.clone(), addend))
     }
+    fn reduce(&self) -> Self {
+        self.clone()
+    }
     fn currency(&self) -> &str {
         self.currency
     }
@@ -27,6 +30,16 @@ impl Money {
 
 enum Expression {
     Sum(Sum),
+    Money(Money),
+}
+
+impl Expression {
+    fn reduce(&self, to: &'static str) -> Money {
+        match self {
+            Expression::Sum(sum) => sum.reduce(to),
+            Expression::Money(money) => money.reduce(),
+        }
+    }
 }
 
 struct Bank {}
@@ -36,9 +49,7 @@ impl Bank {
         Bank {}
     }
     fn reduce(&self, source: Expression, to: &'static str) -> Money {
-        match source {
-            Expression::Sum(sum) => sum.reduce(to),
-        }
+        source.reduce(to)
     }
 }
 
@@ -103,6 +114,7 @@ mod tests {
         let result = five.plus(Money::dollar(5));
         let sum = match result {
             Expression::Sum(sum) => sum,
+            _ => panic!("Not Sum"),
         };
         assert_eq!(five, sum.augend);
         assert_eq!(five, sum.addend);
@@ -114,5 +126,12 @@ mod tests {
         let bank = Bank::new();
         let result = bank.reduce(sum, "USD");
         assert_eq!(Money::dollar(7), result);
+    }
+
+    #[test]
+    fn test_reduce_money() {
+        let bank = Bank::new();
+        let result = bank.reduce(Expression::Money(Money::dollar(1)), "USD");
+        assert_eq!(Money::dollar(1), result);
     }
 }

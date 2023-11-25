@@ -1,16 +1,27 @@
-# これはサンプルの Python スクリプトです。
+class TestCase:
+    def __init__(self, name):
+        self.name = name
 
-# ⌃R を押して実行するか、ご自身のコードに置き換えてください。
-# ⇧ を2回押す を押すと、クラス/ファイル/ツールウィンドウ/アクション/設定を検索します。
-
-
-def print_hi(name):
-    # スクリプトをデバッグするには以下のコード行でブレークポイントを使用してください。
-    print(f'Hi, {name}')  # ⌘F8を押すとブレークポイントを切り替えます。
+    def run(self):
+        method = getattr(self, self.name)
+        method()
 
 
-# ガター内の緑色のボタンを押すとスクリプトを実行します。
-if __name__ == '__main__':
-    print_hi('PyCharm')
+class WasRun(TestCase):
+    def __init__(self, name):
+        self.wasRun = None
+        super().__init__(name)
 
-# PyCharm のヘルプは https://www.jetbrains.com/help/pycharm/ を参照してください
+    def testMethod(self):
+        self.wasRun = 1
+
+
+class TestCaseTest(TestCase):
+    def testRunning(self):
+        test = WasRun("testMethod")
+        assert (not test.wasRun)
+        test.run()
+        assert test.wasRun
+
+
+TestCaseTest("testRunning").run()
